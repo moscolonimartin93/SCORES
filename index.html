@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Scores POP – Hospital Alemán</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0A1628">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+</head>
+<body>
+
+  <!-- SCREEN: HOME -->
+  <div id="s-home" class="screen active">
+    <div class="header">
+      <div class="header-top">
+        <div>
+          <p class="hospital-label">Hospital Alemán · Traumatología</p>
+          <h1 class="app-title">Scores POP</h1>
+        </div>
+        <button class="btn-add" onclick="App.go('s-nuevo')">
+          <span class="plus">+</span> Paciente
+        </button>
+      </div>
+      <div class="search-wrap">
+        <svg class="search-icon" viewBox="0 0 20 20" fill="none"><circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" stroke-width="1.5"/><path d="M13 13l3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <input type="text" id="search" placeholder="Buscar paciente o cirugía..." oninput="App.renderList()" autocomplete="off" autocorrect="off">
+      </div>
+    </div>
+    <div id="patient-list" class="list-container"></div>
+  </div>
+
+  <!-- SCREEN: NUEVO PACIENTE -->
+  <div id="s-nuevo" class="screen">
+    <div class="topbar">
+      <button class="back-btn" onclick="App.go('s-home')">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+      <h2>Nuevo paciente</h2>
+    </div>
+    <div class="form-body">
+      <div class="field">
+        <label>Apellido y nombre</label>
+        <input type="text" id="f-nombre" placeholder="Ej: Moscoglioni Martín" autocomplete="off">
+      </div>
+      <div class="field">
+        <label>Fecha de nacimiento</label>
+        <input type="date" id="f-fnac">
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Región anatómica</label>
+          <select id="f-region">
+            <option value="">Seleccionar...</option>
+            <option value="tobillo">Tobillo / Pie</option>
+            <option value="rodilla">Rodilla</option>
+            <option value="cadera">Cadera</option>
+            <option value="hombro">Hombro / Clavícula</option>
+            <option value="femur">Fémur / Diafisarias</option>
+            <option value="humero">Húmero / Codo</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Control postoperatorio</label>
+          <select id="f-control">
+            <option value="1 semana">1 semana</option>
+            <option value="2 semanas">2 semanas</option>
+            <option value="1 mes">1 mes</option>
+            <option value="3 meses" selected>3 meses</option>
+            <option value="6 meses">6 meses</option>
+            <option value="1 año">1 año</option>
+            <option value="2 años">2 años</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>Diagnóstico / Cirugía realizada</label>
+        <input type="text" id="f-cirugia" placeholder="Ej: RAFI fractura de tobillo bimaleolar">
+      </div>
+      <div class="field">
+        <label>Fecha de cirugía</label>
+        <input type="date" id="f-fcirugia">
+      </div>
+      <div class="field">
+        <label>Médico responsable</label>
+        <input type="text" id="f-medico" placeholder="Ej: Dr. García">
+      </div>
+      <div id="f-err" class="error-msg" style="display:none;"></div>
+      <button class="btn-primary" onclick="App.crearPaciente()">Guardar y aplicar score →</button>
+      <button class="btn-ghost" onclick="App.go('s-home')">Cancelar</button>
+    </div>
+  </div>
+
+  <!-- SCREEN: PACIENTE -->
+  <div id="s-paciente" class="screen">
+    <div class="topbar">
+      <button class="back-btn" onclick="App.go('s-home')">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+      <h2 id="p-titulo">Paciente</h2>
+      <button class="delete-btn" onclick="App.eliminarPaciente()" title="Eliminar paciente">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <div class="pac-card">
+      <div class="pac-card-top">
+        <div class="pac-avatar" id="p-avatar">MM</div>
+        <div class="pac-info">
+          <p class="pac-name" id="p-nombre"></p>
+          <p class="pac-meta" id="p-meta"></p>
+        </div>
+        <span class="region-badge" id="p-badge"></span>
+      </div>
+      <div class="pac-details">
+        <div class="detail-row">
+          <span class="detail-label">Cirugía</span>
+          <span class="detail-val" id="p-cirugia"></span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Control</span>
+          <span class="detail-val" id="p-control"></span>
+        </div>
+        <div class="detail-row" id="p-medico-row">
+          <span class="detail-label">Médico</span>
+          <span class="detail-val" id="p-medico"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-label">Scores disponibles</div>
+    <div id="p-tabs" class="tabs-wrap"></div>
+    <button class="btn-primary" onclick="App.irAScore()">Completar score →</button>
+    <div id="p-historial"></div>
+  </div>
+
+  <!-- SCREEN: SCORE -->
+  <div id="s-score" class="screen">
+    <div class="topbar">
+      <button class="back-btn" onclick="App.verPac(App.curPac)">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+      <h2 id="score-titulo" class="score-title-small"></h2>
+    </div>
+    <div class="form-body">
+      <div id="score-form"></div>
+      <div id="score-result" style="display:none;">
+        <div class="result-card">
+          <p class="result-label" id="r-scorename"></p>
+          <div class="result-number" id="r-num"></div>
+          <div class="result-scale" id="r-scale"></div>
+          <div class="result-interp" id="r-interp"></div>
+        </div>
+        <p class="result-meta" id="r-fecha"></p>
+        <button class="btn-primary" onclick="App.guardarScore()">Guardar resultado</button>
+        <button class="btn-ghost" onclick="App.rehacerScore()">Rehacer score</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/scores.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
